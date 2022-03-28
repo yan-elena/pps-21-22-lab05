@@ -32,3 +32,5 @@ object PerformanceUtils:
   val lst = (1 to 10000000).toList
   val vec = (1 to 10000000).toVector
   assert(measure("lst last")(lst.last) > measure("vec last")(vec.last))
+  
+  lst.zipWithIndex
