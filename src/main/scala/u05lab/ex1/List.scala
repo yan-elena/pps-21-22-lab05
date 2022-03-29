@@ -59,20 +59,38 @@ enum List[A]:
   def reverse(): List[A] = foldLeft[List[A]](Nil())((l, e) => e :: l)
 
   /** EXERCISES */
-  def zipRight: List[(A, Int)] =
-    var list: List[(A, Int)] = Nil()
-    var i = 0
-    for e <- this do {list = (e, i) :: list; i = i + 1}
-    list.reverse()
+  def zipRightRecursive: List[(A, Int)] =
+    def _zip(l: List[A], n: Int): List[(A, Int)] = l match
+      case h :: t => (h, n) :: _zip(t, n + 1)
+      case _ => Nil()
+    _zip(this, 0)
+
+  def zipRight: List[(A, Int)] = foldLeft(Nil())((a, e) => a.append(List((e, a.length))))
+
+  def partitionRecursive(pred: A => Boolean): (List[A], List[A]) = this match
+    case h :: t => val res = t.partitionRecursive(pred); if pred(h) then (h :: res._1, res._2) else (res._1, h :: res._2)
+    case _ => (Nil(), Nil())
 
   def partition(pred: A => Boolean): (List[A], List[A]) = (filter(pred), filter(!pred(_)))
 
-  def span(pred: A => Boolean): (List[A], List[A]) = ???
+  def spanRecursive(pred: A => Boolean): (List[A], List[A]) = this match
+    case h :: t => val res = t.spanRecursive(pred); if pred(h) then (h :: res._1, res._2) else (Nil(), h :: res._1 append res._2)
+    case _ => (Nil(), Nil())
+
+  def span(pred: A => Boolean): (List[A], List[A]) =
+    foldLeft((Nil(), Nil()))((a, e) => if a._2.isEmpty && pred(e) then (a._1.append(List(e)), a._2) else (a._1, a._2.append(List(e))))
 
   /** @throws UnsupportedOperationException if the list is empty */
-  def reduce(op: (A, A) => A): A = ???
+  def reduce(op: (A, A) => A): A = this match
+    case h :: t => t.foldLeft(h)(op)
+    case _ => throw new UnsupportedOperationException
 
-  def takeRight(n: Int): List[A] = ???
+  def takeRightRecursive(n: Int): List[A] = this match
+    case _ :: t if length - n > 0 => t.takeRightRecursive(n)
+    case _ :: _ => this
+    case _ => Nil()
+
+  def takeRight(n: Int): List[A] = foldRight(Nil())((e, s) =>  if n > 0 then { /* n = n - 1; */ e :: s } else s)
 
 // Factories
 object List:
