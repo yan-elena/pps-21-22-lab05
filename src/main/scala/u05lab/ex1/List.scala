@@ -67,6 +67,8 @@ enum List[A]:
 
   def zipRight: List[(A, Int)] = foldLeft(Nil())((a, e) => a.append(List((e, a.length))))
 
+  def zipRight2: List[(A, Int)] = foldRight(Nil())((e, a) => (e, length - a.length - 1) :: a)
+
   def partitionRecursive(pred: A => Boolean): (List[A], List[A]) = this match
     case h :: t => val res = t.partitionRecursive(pred); if pred(h) then (h :: res._1, res._2) else (res._1, h :: res._2)
     case _ => (Nil(), Nil())
@@ -81,16 +83,20 @@ enum List[A]:
     foldLeft((Nil(), Nil()))((a, e) => if a._2.isEmpty && pred(e) then (a._1.append(List(e)), a._2) else (a._1, a._2.append(List(e))))
 
   /** @throws UnsupportedOperationException if the list is empty */
-  def reduce(op: (A, A) => A): A = this match
-    case h :: t => t.foldLeft(h)(op)
+  def reduceRecursive(op: (A, A) => A): A = this match
+    case h :: t => if t.isEmpty then h else op(h, t.reduce(op))
     case _ => throw new UnsupportedOperationException
+
+  def reduce(op: (A, A) => A): A = if isEmpty then throw new UnsupportedOperationException else tail.get.foldLeft(head.get)(op)
 
   def takeRightRecursive(n: Int): List[A] = this match
     case _ :: t if length - n > 0 => t.takeRightRecursive(n)
     case _ :: _ => this
     case _ => Nil()
 
-  def takeRight(n: Int): List[A] = foldRight(Nil())((e, s) =>  if n > 0 then { /* n = n - 1; */ e :: s } else s)
+  def takeRight(n: Int): List[A] = foldRight(Nil())((e, s) => if s.length == n then s else e :: s)
+
+  def collect[B](f: PartialFunction[A, B]): List[B] = filter(f.isDefinedAt).map(f)
 
 // Factories
 object List:
