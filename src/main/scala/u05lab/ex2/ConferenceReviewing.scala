@@ -27,8 +27,7 @@ class ConferenceReviewingImpl extends ConferenceReviewing:
     reviews.filter(_._1 == article).map(_._2(question)).sorted
 
   override def averageFinalScore(article: Int): Double =
-    val articleReviews = reviews.filter(_._1 == article)
-    articleReviews.map(_._2(Question.FINAL)).sum.toDouble / articleReviews.length
+    average(reviews.filter(_._1 == article).map(_._2(Question.FINAL)))
 
   override def acceptedArticles: Set[Int] =
     reviews.map(_._1).distinct.filter(accepted).toSet
@@ -43,5 +42,6 @@ class ConferenceReviewingImpl extends ConferenceReviewing:
     averageFinalScore(article) > 5.0 && reviews.filter(_._1 == article).map(_._2.get(Question.RELEVANCE)).exists(_.get >= 8)
 
   private def averageWeightedFinalScore(article: Int): Double =
-    val articleReviews = reviews.filter(_._1 == article)
-    articleReviews.map(p => p._2(Question.FINAL) * p._2(Question.CONFIDENCE) / 10.0).sum / articleReviews.length.toDouble
+    average(reviews.filter(_._1 == article).map(q => q._2(Question.FINAL) * q._2(Question.CONFIDENCE) / 10.0))
+
+  private def average(list: List[Double]): Double = list.sum / list.length
